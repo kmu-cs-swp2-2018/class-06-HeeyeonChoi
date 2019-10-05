@@ -1,62 +1,29 @@
 import time
-import random
 
+def fibo(n):
+    if n <= 1:
+        return n
+    return  fibo(n-1) + fibo(n-2)
 
-def seqsearch(nbrs, target):
-    for i in range(0, len(nbrs)):
-        if (target == nbrs[i]):
-            return i
-    return -1
-
-
-def recbinsearch(L, l, u, target):
-    if u > l :
-        return None
-    mid = (l + u) // 2
-
-    if L[mid] == target:
-        return mid
-    elif L[mid] > target:
-        l = mid - 1
-    else:
-        u = mid + 1
-
-    return recbinsearch(L, l, u, target)
+def iterfibo(n):
+    f = 1
+    f_2 = 1
+    for i in range(n-1):
+        f, f_2 = f_2, f+f_2
+    return f
 
 
 
-numofnbrs = int(input("Enter a number: "))
-numbers = []
-for i in range(numofnbrs):
-    numbers += [random.randint(0, 999999)]
+while True :
+    nbr = int(input("Enter a number: "))
+    if nbr == -1:
+        break
+    ts = time.time()
+    fibonumber = iterfibo(nbr)
+    ts = time.time() - ts
+    print("IterFibo(%d)=%d, time %.6f" % (nbr, fibonumber, ts))
 
-numbers = sorted(numbers)
-
-numoftargets = int(input("Enter the number of targets: "))
-targets = []
-for i in range(numoftargets):
-    targets += [random.randint(0, 999999)]
-
-
-ts = time.time()
-
-# binary search - recursive
-count = 0
-for target in targets:
-    idx = recbinsearch(numbers, 0, len(numbers), target)
-    if idx == -1:
-        count += 1
-ts = time.time() - ts
-print("recbinsearch %d: not found %d time %.6f" % (numoftargets, count, ts))
-
-ts = time.time()
-
-# sequential search
-count = 0
-for target in targets:
-    idx = seqsearch(numbers, target)
-    if idx == -1:
-        count += 1
-ts = time.time() - ts
-
-print("seqsearch %d: not found %d time %.6f" % (numoftargets, count, ts))
+    ts = time.time()
+    fibonumber = fibo(nbr)
+    ts = time.time() -ts
+    print("Fibo(%d)=%d, time %.6f" % (nbr, fibonumber, ts))
