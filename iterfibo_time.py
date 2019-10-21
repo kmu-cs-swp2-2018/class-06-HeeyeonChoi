@@ -6,11 +6,16 @@ def fibo(n):
     return  fibo(n-1) + fibo(n-2)
 
 def iterfibo(n):
-    f = 1
-    f_2 = 1
+    if n <= 1 :
+        return n
+    f_1 = 1
+    f_0 = 0
+    f_2 = 0
     for i in range(n-1):
-        f, f_2 = f_2, f+f_2
-    return f
+        f_2 = f_1 + f_0
+        f_0 = f_1
+        f_1 = f_2
+    return f_2
 
 
 
@@ -27,3 +32,4 @@ while True :
     fibonumber = fibo(nbr)
     ts = time.time() -ts
     print("Fibo(%d)=%d, time %.6f" % (nbr, fibonumber, ts))
+

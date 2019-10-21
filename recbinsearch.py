@@ -3,23 +3,24 @@ import random
 
 
 def seqsearch(nbrs, target):
-    for i in range(0, len(nbrs)):
+    for idx in range(0, len(nbrs)):
         if (target == nbrs[i]):
-            return i
+            return idx
+    
     return -1
 
 
 def recbinsearch(L, l, u, target):
-    if u > l :
-        return None
+    if u < l :
+        return -1
     mid = (l + u) // 2
 
     if L[mid] == target:
         return mid
     elif L[mid] > target:
-        l = mid - 1
+        u = mid - 1
     else:
-        u = mid + 1
+        l = mid + 1
 
     return recbinsearch(L, l, u, target)
 
@@ -43,7 +44,7 @@ ts = time.time()
 # binary search - recursive
 count = 0
 for target in targets:
-    idx = recbinsearch(numbers, 0, len(numbers), target)
+    idx = recbinsearch(numbers, 0, len(numbers)-1, target)
     if idx == -1:
         count += 1
 ts = time.time() - ts
