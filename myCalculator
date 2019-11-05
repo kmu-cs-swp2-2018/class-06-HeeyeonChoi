@@ -1,0 +1,243 @@
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QLayout, QGridLayout
+from PyQt5.QtWidgets import QToolButton, QSizePolicy
+from math import factorial as fact
+
+# 숫자 및 기호 패드
+numberPad = [
+    '7', '8', '9',
+    '4', '5', '6',
+    '1', '2', '3',
+    '0', '.', '=']
+
+# 연산자 기호 패드
+operatorPad = [
+    '*', '/',
+    '+', '-',
+    '(', ')',
+    'C', '←']
+
+# 계산 기능
+compute = ['*', '/', '+', '-', '.', '']
+
+# 상수이름과 상수 값의 목록
+constant = [
+    ('pi', '3.141592'),
+    ('빛의 이동 속도 (m/s)', '3E+8'),
+    ('소리의 이동 속도 (m/s)', '340'),
+    ('태양과의 평균 거리 (km)', '1.5E+8')]
+
+# 계산기에서 실질적으로 계산 시 필요한 상수 값만 따로 추출
+constantList = [x[0] for x in constant]
+
+# 버튼 생성기
+class Button(QToolButton):
+
+    def __init__(self, text, callbck):
+        super().__init__()
+        self.setText(text)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.clicked.connect(callbck)
+
+    def sizeHint(self):
+        size = super(Button, self).sizeHint()
+        size.setHeight(size.height() + 20)
+        size.setWidth(max(size.width(), size.height()))
+        return size
+
+# 팩토리알로 변환하여 계산
+def factorial(numStr):
+    try:
+        n = int(numStr)
+        if n > 100000:
+            raise Exception
+        r = str(fact(n))
+    except:
+        r = 'Error!'
+    return r
+
+# 10진수에서 이진수로
+def decToBin(numStr):
+    try:
+        n = int(numStr)
+        r = bin(n)[2:]
+    except:
+        r = 'Error!'
+    return r
+
+# 이진수에서 10진수로
+def binToDec(strNum):
+    try:
+        n = int(strNum, 2)
+        r = str(n)
+    except:
+        r = 'Error!'
+    return r
+
+
+
+# 로마자 리스트
+roman = [
+    (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),
+    (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),
+    (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'),
+    (1, 'I')]
+
+# 10진수에서 로마자로 변환 함수
+def decToRoman(numStr):
+    try:
+        n = int(numStr)
+    except:
+        return 'Error!'
+
+    if n >= 4000 or n <= 0:
+        return 'Error!'
+
+    result = ''
+    for v, l in roman:
+        while n >= v:
+            result += l
+            n -= v
+
+    return result
+
+# 로마자에서 10진수로 변환 함수
+def romanToDec(romanNumStr):
+    romanNumStrBackup = romanNumStr
+    result = 0
+    for value, letters in roman:
+        while romanNumStr[:len(letters)] == letters:
+            romanNumStr = romanNumStr[len(letters):]
+            result += value
+    if decToRoman(result) != romanNumStrBackup:
+        return 'Error!'
+    return result
+
+# 기능들 이름과 목록
+functionMap = [
+    ('factorial (!)', factorial),
+    ('-> binary', decToBin),
+    ('binary -> dec', binToDec),
+    ('-> roman', decToRoman),
+    ('roman -> dec', romanToDec)]
+
+# 기능만 따로 빼놓기
+functionList = [x[0] for x in functionMap]
+
+
+# 본격적인 계산기 위젯 형성 시작
+class Calculator(QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # 창 만들기
+        self.display = QLineEdit()
+        self.display.setReadOnly(True)
+        self.display.setAlignment(Qt.AlignRight)
+        self.display.setMaxLength(40)
+
+        # 버튼과 레이아웃 생성
+        numLayout = QGridLayout()
+        opLayout = QGridLayout()
+        constantLayout = QGridLayout()
+        funcLayout = QGridLayout()
+
+
+        # 버튼 그룹 생성
+        buttonGroups = {
+            'num': {'buttons': numberPad, 'layout': numLayout, 'columns': 3},
+            'op': {'buttons': operatorPad, 'layout': opLayout, 'columns': 2},
+            'constants': {'buttons': constantList, 'layout': constantLayout, 'columns': 1},
+            'functions': {'buttons': functionList, 'layout': funcLayout, 'columns': 1},
+        }
+
+        # 버튼 그룹 레이아웃 설정
+        for label in buttonGroups.keys():
+            r = 0; c = 0
+            buttonPad = buttonGroups[label]
+            for btnText in buttonPad['buttons']:
+                button = Button(btnText, self.buttonClicked)
+                buttonPad['layout'].addWidget(button, r, c)
+                c += 1
+                if c >= buttonPad['columns']:
+                    c = 0; r += 1
+
+        # 메인 레이아웃 형성
+        mainLayout = QGridLayout()
+        mainLayout.setSizeConstraint(QLayout.SetFixedSize)
+
+        mainLayout.addWidget(self.display, 0, 0, 1, 2)
+        mainLayout.addLayout(numLayout, 1, 0)
+        mainLayout.addLayout(opLayout, 1, 1)
+        mainLayout.addLayout(constantLayout, 2, 0)
+        mainLayout.addLayout(funcLayout, 2, 1)
+
+        self.setLayout(mainLayout)
+
+        self.setWindowTitle("My Calculator")
+
+        self.delLast = False
+
+    # 버튼 클릭시 에러 설정 및 센더
+    def buttonClicked(self):
+
+        if self.display.text() == 'Error!':
+            self.display.setText('')
+
+        button = self.sender()
+        key = button.text()
+
+        # 키패드 누를 경우 연산 결과처리 및 에러 처리
+        if key == '=':
+            try:
+                result = str(eval(self.display.text()))
+            except:
+                result = 'Error!'
+            self.display.setText(result)
+        elif key == 'C':
+            self.display.clear()
+        elif key == '←':
+            self.display.setText(self.display.text()[:-1])
+            self.delLast = False
+        elif key in constantList:
+            self.display.setText(self.display.text() + constant[constantList.index(key)][1])
+        elif key in functionList:
+            n = self.display.text()
+            value = functionMap[functionList.index(key)][1](n)
+            self.display.setText(str(value))
+        elif key in compute:
+            if not self.display.text()[-1:] in compute:
+                self.display.setText(self.display.text() + key)
+        elif key == '0':
+            text = self.display.text()[-2:]
+            if text[:1] in operatorPad and text[1:] == '0':
+                self.delLast = True
+                return
+            elif text[:1] == '0' and text[1:] == '':
+                self.delLast = True
+                return
+            else:
+                self.display.setText(self.display.text() + key)
+        elif self.delLast:
+            self.display.setText(self.display.text()[:-1] + key)
+            self.delLast = False
+        else:
+            self.display.setText(self.display.text() + key)
+
+    # 이벤트 처리
+    def keyPressEvent(self,e):
+        if e.key()==Qt.Key_Escape:
+            self.close()
+
+if __name__ == '__main__':
+
+    import sys
+
+    app = QApplication(sys.argv)
+    calc = Calculator()
+    calc.show()
+    sys.exit(app.exec_())
+
