@@ -147,7 +147,7 @@ class ScoreDB(QWidget):
             if p['Name'] == self.nameLine.text():
                 temp = ''
                 for attr in sorted(p):
-                    temp += str(attr) + '=' + str(p[attr]) + '\t'
+                    temp += str(attr) + '=' + str(p[attr]) + '\t' + '\t'
                 self.resultText.append(temp)
 
     def incScoreDB(self):
